@@ -20,10 +20,10 @@ public class Home : MonoBehaviour
     [Serializable]
     public struct Game
     {
-        public string id_plant;//same id_plant on json
-        public string rfid;//same id_plant on json
+        public string name;//same name on json
+        public string rfid;//same name on json
         public Sprite Icon;
-        public string created_at;//same id_plant on json
+        public string icon;//same name on json
     }
 
     Game[] allGames;
@@ -46,7 +46,7 @@ public class Home : MonoBehaviour
         {
             g = Instantiate(buttonTemplate, transform);
             g.transform.GetChild(0).GetComponent<Image>().sprite = allGames[i].Icon;
-            g.transform.GetChild(1).GetComponent<Text>().text = allGames[i].id_plant;
+            g.transform.GetChild(1).GetComponent<Text>().text = allGames[i].name;
             g.transform.GetChild(2).GetComponent<Text>().text = allGames[i].rfid;
 
             g.GetComponent<Button>().AddEventListener(i, ItemClicked);
@@ -57,15 +57,15 @@ public class Home : MonoBehaviour
 
     void ItemClicked(int itemIndex)
     {
-        Debug.Log("id_plant " + allGames[itemIndex].id_plant);
+        Debug.Log("name " + allGames[itemIndex].name);
     }
 
     //***************************************************
     IEnumerator GetGames()
     {
-        string created_at = "http://127.0.0.1:8000/api/plants";
+        string url = "http://127.0.0.1:8000/api/plants";
 
-        UnityWebRequest request = UnityWebRequest.Get(created_at);
+        UnityWebRequest request = UnityWebRequest.Get(url);
         request.chunkedTransfer = false;
         yield return request.Send();
 
@@ -87,7 +87,7 @@ public class Home : MonoBehaviour
     {
         for (int i = 0; i < allGames.Length; i++)
         {
-            WWW w = new WWW(allGames[i].created_at);
+            WWW w = new WWW(allGames[i].icon);
             yield return w;
 
             if (w.error != null)
@@ -108,5 +108,4 @@ public class Home : MonoBehaviour
 
         DrawUI();
     }
-
 }
