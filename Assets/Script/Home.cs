@@ -20,11 +20,15 @@ public class Home : MonoBehaviour
     [Serializable]
     public struct Game
     {
-        public string name;//same name on json
+        public string custom_name;//same name on json
         public string rfid;//same name on json
         public Sprite Icon;
         public string icon;//same name on json
     }
+    public GameObject prefabToSpawn;
+    public Transform parentObject;
+    public string link;
+    public UserProfile UserProfileScript;
 
     Game[] allGames;
     [SerializeField] Sprite defaultIcon;
@@ -32,6 +36,12 @@ public class Home : MonoBehaviour
     void Start()
     {
         //fetch data from Json
+        StartCoroutine(GetGames());
+    }
+    public void refresh()
+    {
+        DestroyAllChildren();
+        Spawn();
         StartCoroutine(GetGames());
     }
 
@@ -46,7 +56,7 @@ public class Home : MonoBehaviour
         {
             g = Instantiate(buttonTemplate, transform);
             g.transform.GetChild(0).GetComponent<Image>().sprite = allGames[i].Icon;
-            g.transform.GetChild(1).GetComponent<Text>().text = allGames[i].name;
+            g.transform.GetChild(1).GetComponent<Text>().text = allGames[i].custom_name;
             g.transform.GetChild(2).GetComponent<Text>().text = allGames[i].rfid;
 
             g.GetComponent<Button>().AddEventListener(i, ItemClicked);
@@ -57,13 +67,13 @@ public class Home : MonoBehaviour
 
     void ItemClicked(int itemIndex)
     {
-        Debug.Log("name " + allGames[itemIndex].name);
+        Debug.Log("name " + allGames[itemIndex].custom_name);
     }
 
     //***************************************************
     IEnumerator GetGames()
     {
-        string url = "http://127.0.0.1:8000/api/plants";
+        string url = link + UserProfileScript.id;
 
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.chunkedTransfer = false;
@@ -108,4 +118,34 @@ public class Home : MonoBehaviour
 
         DrawUI();
     }
+    void DestroyAllChildren()
+    {
+        // Loop melalui semua anak-anak GameObject dan hancurkan mereka satu per satu
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+    void Spawn()
+    {
+        // Pastikan prefabToSpawn dan spawnPoint tidak null
+        if (prefabToSpawn != null)
+        {
+            // Membuat instance baru dari prefab
+            GameObject spawnedObject = Instantiate(prefabToSpawn);
+
+            // Mengatur parentObject sebagai parent dari prefab yang di-spawn
+            if (parentObject != null)
+            {
+                spawnedObject.transform.parent = parentObject;
+            }
+
+            // Opsional: Anda dapat melakukan operasi lain pada spawnedObject di sini jika perlu
+        }
+        else
+        {
+            Debug.LogWarning("Prefab atau spawnPoint tidak diatur. Silakan tentukan prefab dan spawnPoint di Inspector Unity.");
+        }
+    }
+
 }
