@@ -27,14 +27,17 @@ public class NFC : MonoBehaviour
 
     public string ImageLink;
     public string apiURL;
+    public string redeemURL;
     public string nama_tanaman;
-    public string method;
+    public string RedemMethod;
     public string RFID;
     public InputField CustomName;
     public UserProfile UserProfileVar;
     public Text consoleText;
     public Text rfidtext;
     public Text log;
+    public Text jenisPlant;
+    public RawImage iconImage;
     AndroidJavaObject[] records = null;
     AndroidJavaObject[] rawMsg;
 
@@ -78,6 +81,7 @@ public class NFC : MonoBehaviour
         {
             RedeemBox.SetActive(true);
             RfidOld.rfidOld = RFID;
+            StartCoroutine(LoadImage());
 
         }
         if (!string.IsNullOrEmpty(RFID) && scanned == false && RfidOld.rfidOld != RFID)
@@ -186,7 +190,25 @@ public class NFC : MonoBehaviour
     }
     public void redeem()
     {
-        // StartCoroutine(PostRedeem());
+        StartCoroutine(PostRedeem());
+    }
+    private IEnumerator LoadImage()
+    {
+        using (WWW www = new WWW(ImageLink))
+        {
+            yield return www;
+
+            if (www.error != null)
+            {
+                Debug.LogError("Error loading image: " + www.error);
+            }
+            else
+            {
+                Texture2D tex = new Texture2D(2, 2); // Buat texture baru
+                www.LoadImageIntoTexture(tex); // Muat gambar ke texture
+                iconImage.texture = tex; // Set texture pada komponen RawImage
+            }
+        }
     }
 
     IEnumerator PostFind(string isiRFID)
@@ -220,6 +242,7 @@ public class NFC : MonoBehaviour
             // string ResponseIcon = user.icon;
             ImageLink = user.icon;
             nama_tanaman = user.name;
+            jenisPlant.text = nama_tanaman;
             if (string.IsNullOrEmpty(ImageLink))
             {
                 ImageLink = "none";
@@ -231,44 +254,42 @@ public class NFC : MonoBehaviour
         }
     }
 
-    // IEnumerator PostRedeem()
-    // {
-    //     int id_player = UserProfileVar.id;
-    //     string custom_name = CustomName.text;
-    //     // string rfid = RFID;
-    //     // string rfid = nfc.rfid;
-    //     string DataRFID = rfid;
+    IEnumerator PostRedeem()
+    {
+        int id_player = UserProfileVar.id;
+        string custom_name = CustomName.text;
+        string DataRFID = RFID;
 
-    //     // Membuat objek JSON untuk dikirim ke server
-    //     string jsonRequestBody = "{\"rfid\":\"" + DataRFID + "\",\"custom_name\":\"" + custom_name + "\",\"id_player\":\"" + id_player + "\"}";
-    //     byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonRequestBody);
-    //     Debug.Log(jsonRequestBody);
+        // Membuat objek JSON untuk dikirim ke server
+        string jsonRequestBody = "{\"rfid\":\"" + DataRFID + "\",\"custom_name\":\"" + custom_name + "\",\"id_player\":\"" + id_player + "\"}";
+        byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonRequestBody);
+        Debug.Log(jsonRequestBody);
 
-    //     // Membuat objek UnityWebRequest untuk POST request
-    //     UnityWebRequest request = new UnityWebRequest(apiURL, method);
+        // Membuat objek UnityWebRequest untuk POST request
+        UnityWebRequest request = new UnityWebRequest(redeemURL, RedemMethod);
 
-    //     // Menetapkan header
-    //     request.SetRequestHeader("Content-Type", "application/json");
-    //     request.uploadHandler = new UploadHandlerRaw(jsonBytes);
-    //     request.downloadHandler = new DownloadHandlerBuffer();
+        // Menetapkan header
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.uploadHandler = new UploadHandlerRaw(jsonBytes);
+        request.downloadHandler = new DownloadHandlerBuffer();
 
-    //     // Mengirim request
-    //     yield return request.SendWebRequest();
+        // Mengirim request
+        yield return request.SendWebRequest();
 
-    //     // Memeriksa apakah ada error
-    //     if (request.isNetworkError || request.isHttpError)
-    //     {
-    //         string responseText = request.downloadHandler.text;
-    //         Debug.LogError("Response: " + responseText);
-    //         consoleText.text = "Response: " + responseText + "body : " + jsonRequestBody;
-    //     }
-    //     else
-    //     {
-    //         // Menampilkan respons di console log
-    //         string responseText = request.downloadHandler.text;
-    //         reset();
-    //         consoleText.text = "Response: " + responseText + "body : " + jsonRequestBody;
-    //         Debug.Log("Response: " + responseText);
-    //     }
-    // }
+        // Memeriksa apakah ada error
+        if (request.isNetworkError || request.isHttpError)
+        {
+            string responseText = request.downloadHandler.text;
+            Debug.LogError("Response: " + responseText);
+            consoleText.text = "Response: " + responseText + "body : " + jsonRequestBody;
+        }
+        else
+        {
+            // Menampilkan respons di console log
+            string responseText = request.downloadHandler.text;
+            reset();
+            consoleText.text = "Response: " + responseText + "body : " + jsonRequestBody;
+            Debug.Log("Response: " + responseText);
+        }
+    }
 }

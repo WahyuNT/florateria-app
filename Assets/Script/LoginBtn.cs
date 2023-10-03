@@ -78,7 +78,10 @@ public class LoginBtn : MonoBehaviour
     }
     void success()
     {
+        Username.text = null;
+        Password.text = null;
 
+        
         for (int i = 0; i < Panel.Length; i++)
         {
             if (PanelBoolean[i] == "true")

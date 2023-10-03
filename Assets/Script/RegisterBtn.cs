@@ -16,7 +16,7 @@ public class RegisterBtn : MonoBehaviour
     public string[] PanelBoolean;
     public Text ErorText;
 
-    
+
 
     public void PostRegister()
     {
@@ -63,7 +63,8 @@ public class RegisterBtn : MonoBehaviour
     }
     void success()
     {
-
+        Username.text = null;
+        Password.text = null;
         for (int i = 0; i < Panel.Length; i++)
         {
             if (PanelBoolean[i] == "true")
